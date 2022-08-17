@@ -1,0 +1,9 @@
+name: 'Rotate AWS Access Keys stored in github organization in dependabot scoup'
+author: 'Dmitry Teikovtsev <teikovtsev.dmitry@pdffiller.team>'
+description: Github action that rotates the iam user credentials stored in github organization in dependabot scoup on a schedule
+runs:
+    using: 'docker'
+    image: 'Dockerfile'
+branding:
+    icon: 'check-circle'
+    color: 'blue'
