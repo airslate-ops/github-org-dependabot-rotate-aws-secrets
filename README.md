@@ -1,4 +1,4 @@
-# Rotate AWS Access token stored in Github Organizations dependabot scoup secrets
+# Rotate AWS Access token stored in Github Organizations dependabot scope secrets
 
 Version for rotate organization secret, cloned from [kneemaa/github-action-rotate-aws-secrets](https://github.com/kneemaa/github-action-rotate-aws-secrets)
 

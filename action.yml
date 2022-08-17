@@ -1,6 +1,6 @@
-name: 'Rotate AWS Access Keys stored in github organization in dependabot scoup'
+name: 'Rotate AWS Access Keys stored in github organization dependabot scope'
 author: 'Dmitry Teikovtsev <teikovtsev.dmitry@pdffiller.team>'
-description: Github action that rotates the iam user credentials stored in github organization in dependabot scoup on a schedule
+description: Github action that rotates the iam user credentials stored in github organization dependabot scope on a schedule
 runs:
     using: 'docker'
     image: 'Dockerfile'
