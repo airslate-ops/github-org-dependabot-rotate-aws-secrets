@@ -35,7 +35,11 @@ Version for rotate organization secret, cloned from [kneemaa/github-action-rotat
 
 #### OWNER_ORGANIZATION
 - Required: ***True***
-- Description: The owner and repository name. For example, octocat. If being ran in the repo being updated, you can use `${{github.repository_owner}}`
+- Description: The owner repository name. For example, octocat. If being ran in the repo being updated, you can use `${{github.repository_owner}}`
+
+#### OWNER_REPOSITORY
+- Required: ***True***
+- Description: The repository name. For example, octocat. If being ran in the repo being updated, you can use `${{github.repository}}`
 
 #### GITHUB_ACCESS_KEY_NAME
 - Required: ***False***
@@ -71,6 +75,7 @@ jobs:
           IAM_USERNAME: 'iam-user-name'
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           OWNER_ORGANIZATION: ${{ github.repository_owner }}
+          OWNER_REPOSITORY: {{ github.repository }}
 ```
 
 ## Adding Slack notification on failure only
@@ -94,6 +99,7 @@ jobs:
           IAM_USERNAME: 'iam-user-name'
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           OWNER_ORGANIZATION: ${{ github.repository_owner }}
+          OWNER_REPOSITORY: {{ github.repository }}
 
       - name: Send Slack Status
         if: failure()

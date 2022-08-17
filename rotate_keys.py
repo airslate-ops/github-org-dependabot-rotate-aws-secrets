@@ -25,6 +25,7 @@ def main_function():
     iam_username = os.environ['IAM_USERNAME'] if 'IAM_USERNAME' in os.environ else who_am_i()
     github_token = os.environ['PERSONAL_ACCESS_TOKEN']
     owner_organization = os.environ['OWNER_ORGANIZATION']
+    owner_repository = os.environ['OWNER_REPOSITORY']
 
     list_ret = iam.list_access_keys(UserName=iam_username)
     starting_num_keys = len(list_ret["AccessKeyMetadata"])
@@ -43,15 +44,18 @@ def main_function():
     (new_access_key, new_secret_key) = create_new_keys(iam_username)
 
     #get org pub key info
-    (public_key, pub_key_id) = get_pub_key(owner_organization, github_token)
+    (dependabot_public_key, dependabot_pub_key_id) = get_dependabot_pub_key(owner_organization, github_token)
+    (repo_public_key, repo_pub_key_id) = get_repo_pub_key(owner_repository, github_token)
 
     #encrypt the secrets
     encrypted_access_key = encrypt(public_key,new_access_key)
     encrypted_secret_key = encrypt(public_key,new_secret_key)
 
     #upload secrets
-    upload_secret(owner_organization,access_key_name,encrypted_access_key,pub_key_id,github_token)
-    upload_secret(owner_organization,secret_key_name,encrypted_secret_key,pub_key_id,github_token)
+    upload_repo_secret(owner_repository,access_key_name,encrypted_access_key,repo_pub_key_id,github_token)
+    upload_repo_secret(owner_repository,secret_key_name,encrypted_secret_key,repo_pub_key_id,github_token)
+    upload_dependabot_secret(owner_organization,access_key_name,encrypted_access_key,dependabot_pub_key_id,github_token)
+    upload_dependabot_secret(owner_organization,secret_key_name,encrypted_secret_key,dependabot_pub_key_id,github_token)
 
     #delete old keys
     delete_old_keys(iam_username, current_access_id)
@@ -110,7 +114,7 @@ def encrypt(public_key: str, secret_value: str) -> str:
     encrypted = sealed_box.encrypt(secret_value.encode("utf-8"))
     return b64encode(encrypted).decode("utf-8")
 
-def get_pub_key(owner_org, github_token):
+def get_dependabot_pub_key(owner_org, github_token):
     # get public key for encrypting
     pub_key_ret = requests.get(
         f'https://api.github.com/orgs/{owner_org}/dependabot/secrets/public-key',
@@ -130,7 +134,7 @@ def get_pub_key(owner_org, github_token):
 
     return (public_key, public_key_id)
 
-def upload_secret(owner_org,key_name,encrypted_value,pub_key_id,github_token):
+def upload_dependabot_secret(owner_org,key_name,encrypted_value,pub_key_id,github_token):
     #upload encrypted access key
     updated_secret = requests.put(
         f'https://api.github.com/orgs/{owner_org}/dependabot/secrets/{key_name}',
@@ -148,6 +152,46 @@ def upload_secret(owner_org,key_name,encrypted_value,pub_key_id,github_token):
         print(f'Got status code: {updated_secret.status_code} on updating {key_name} in {owner_org}')
         sys.exit(1)
     print(f'Updated {key_name} in {owner_org}')
+
+# Update Repository Secret, because: Gets a single organization secret without revealing its encrypted value.
+# https://docs.github.com/en/rest/dependabot/secrets#get-an-organization-secret
+def get_repo_pub_key(owner_repo, github_token):
+    # get public key for encrypting
+    pub_key_ret = requests.get(
+        f'https://api.github.com/repos/{owner_repo}/actions/secrets/public-key',
+        headers={'Authorization': f"token {github_token}"}
+    )
+
+    if not pub_key_ret.status_code == requests.codes.ok:
+        raise Exception(f"github public key request failed, status code: {pub_key_ret.status_code}, body: {pub_key_ret.text}, vars: {owner_repo} {github_token}")
+        sys.exit(1)
+
+    #convert to json
+    public_key_info = pub_key_ret.json()
+
+    #extract values
+    public_key = public_key_info['key']
+    public_key_id = public_key_info['key_id']
+
+    return (public_key, public_key_id)
+
+def upload_repo_secret(owner_repo,key_name,encrypted_value,pub_key_id,github_token):
+    #upload encrypted access key
+    updated_secret = requests.put(
+        f'https://api.github.com/repos/{owner_repo}/actions/secrets/{key_name}',
+        json={
+            'encrypted_value': encrypted_value,
+            'key_id': pub_key_id
+        },
+        headers={'Authorization': f"token {github_token}"}
+    )
+    # status codes github says are valid
+    good_status_codes = [204,201]
+
+    if updated_secret.status_code not in good_status_codes:
+        print(f'Got status code: {updated_secret.status_code} on updating {key_name} in {owner_repo}')
+        sys.exit(1)
+    print(f'Updated {key_name} in {owner_repo}')
 
 # run everything
 main_function()
