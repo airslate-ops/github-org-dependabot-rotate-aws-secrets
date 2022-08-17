@@ -48,8 +48,10 @@ def main_function():
     (repo_public_key, repo_pub_key_id) = get_repo_pub_key(owner_repository, github_token)
 
     #encrypt the secrets
-    encrypted_access_key = encrypt(public_key,new_access_key)
-    encrypted_secret_key = encrypt(public_key,new_secret_key)
+    repo_encrypted_access_key = encrypt(repo_public_key,new_access_key)
+    repo_encrypted_secret_key = encrypt(repo_public_key,new_secret_key)
+    dependabot_encrypted_access_key = encrypt(dependabot_public_key,new_access_key)
+    dependabot_encrypted_secret_key = encrypt(dependabot_public_key,new_secret_key)
 
     #upload secrets
     upload_repo_secret(owner_repository,access_key_name,encrypted_access_key,repo_pub_key_id,github_token)
