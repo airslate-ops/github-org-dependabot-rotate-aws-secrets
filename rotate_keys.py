@@ -54,10 +54,10 @@ def main_function():
     dependabot_encrypted_secret_key = encrypt(dependabot_public_key,new_secret_key)
 
     #upload secrets
-    upload_repo_secret(owner_repository,access_key_name,encrypted_access_key,repo_pub_key_id,github_token)
-    upload_repo_secret(owner_repository,secret_key_name,encrypted_secret_key,repo_pub_key_id,github_token)
-    upload_dependabot_secret(owner_organization,access_key_name,encrypted_access_key,dependabot_pub_key_id,github_token)
-    upload_dependabot_secret(owner_organization,secret_key_name,encrypted_secret_key,dependabot_pub_key_id,github_token)
+    upload_repo_secret(owner_repository,access_key_name,repo_encrypted_access_key,repo_pub_key_id,github_token)
+    upload_repo_secret(owner_repository,secret_key_name,repo_encrypted_secret_key,repo_pub_key_id,github_token)
+    upload_dependabot_secret(owner_organization,access_key_name,dependabot_encrypted_access_key,dependabot_pub_key_id,github_token)
+    upload_dependabot_secret(owner_organization,secret_key_name,dependabot_encrypted_secret_key,dependabot_pub_key_id,github_token)
 
     #delete old keys
     delete_old_keys(iam_username, current_access_id)
